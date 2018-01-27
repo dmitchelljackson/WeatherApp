@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">WeatherApp</string>
+    <string name="already_added_error">Oops, looks like you already have</string>
+</resources>
