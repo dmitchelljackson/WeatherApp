@@ -3,7 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:paddingStart="5dp"
+    android:paddingEnd="5dp">
 
     <android.support.design.widget.TextInputLayout
         android:id="@+id/searchCityZipLayout"
@@ -25,5 +27,12 @@
             app:layout_constraintStart_toStartOf="parent"
             tools:layout_editor_absoluteY="82dp" />
     </android.support.design.widget.TextInputLayout>
+
+    <ProgressBar
+        android:id="@+id/search_progress"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="true"
+        android:visibility="gone"/>
 
 </android.support.constraint.ConstraintLayout>

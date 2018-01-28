@@ -16,12 +16,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 
 import com.example.danieljackson.weatherapp.R;
 import com.example.danieljackson.weatherapp.WeatherApplication;
 import com.example.danieljackson.weatherapp.data.strings.SystemMessaging;
 import com.example.danieljackson.weatherapp.ui.cities.presenter.CitiesPresenter;
 import com.example.danieljackson.weatherapp.ui.cities.presenter.model.City;
+import com.jakewharton.retrofit2.adapter.rxjava2.HttpException;
 
 import org.w3c.dom.Text;
 
@@ -88,12 +90,15 @@ public class CitiesFragment extends Fragment {
 
         TextInputLayout searchCityLayout = (TextInputLayout) dialogView.findViewById(R.id.searchCityZipLayout);
         EditText zipEntryText = searchCityLayout.getEditText();
+        ProgressBar progressBar = (ProgressBar) dialogView.findViewById(R.id.search_progress);
 
         searchCityLayout.setHintEnabled(true);
         searchCityLayout.setHint("Five digit zip, e.g. 37215");
 
-        builder.setPositiveButton("Find", (dialog, which) -> {});
-        builder.setNegativeButton("Cancel", (dialog, which) -> {});
+        builder.setPositiveButton("Find", (dialog, which) -> {
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> {
+        });
 
         Dialog dialog = builder.create();
 
@@ -104,6 +109,10 @@ public class CitiesFragment extends Fragment {
                 if (zipEntryText.getText().length() < 5) {
                     searchCityLayout.setError("Please enter a 5 digit zip.");
                 } else {
+                    progressBar.setVisibility(View.VISIBLE);
+                    searchCityLayout.setVisibility(View.GONE);
+                    positive.setEnabled(false);
+
                     Single<City> cityResult = citiesPresenter.searchForCityByZip(zipEntryText.getText().toString());
                     cityResult.observeOn(AndroidSchedulers.mainThread()).subscribe(new SingleObserver<City>() {
                         @Override
@@ -114,11 +123,20 @@ public class CitiesFragment extends Fragment {
                         @Override
                         public void onSuccess(City city) {
                             systemMessaging.d(TAG, city.getCityName());
+                            dialog.dismiss();
                         }
 
                         @Override
                         public void onError(Throwable e) {
                             systemMessaging.e(TAG, e.getMessage());
+                            progressBar.setVisibility(View.GONE);
+                            searchCityLayout.setVisibility(View.VISIBLE);
+                            if (e instanceof HttpException && ((HttpException) e).code() == 404) {
+                                searchCityLayout.setError(getString(R.string.city_not_found));
+                            } else {
+                                searchCityLayout.setError(getString(R.string.generic_server_issue));
+                            }
+                            positive.setEnabled(true);
                         }
                     });
                 }

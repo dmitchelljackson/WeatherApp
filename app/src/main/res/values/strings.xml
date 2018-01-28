@@ -3,4 +3,6 @@
     <string name="already_added_error">Oops, looks like you already have</string>
     <string name="search_title">Add city?</string>
     <string name="enter_zip">Please enter city zip code.</string>
+    <string name="city_not_found">Unfortunately, we couldn\'t find a city with the zip you entered.</string>
+    <string name="generic_server_issue">We have run into an issue. Please try again later.</string>
 </resources>
