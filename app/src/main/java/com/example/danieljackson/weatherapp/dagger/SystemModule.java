@@ -7,6 +7,7 @@ import com.example.danieljackson.weatherapp.data.persistence.PreferencePersisten
 import com.example.danieljackson.weatherapp.data.persistence.SystemPersistence;
 import com.example.danieljackson.weatherapp.data.strings.AndroidMessageRetriever;
 import com.example.danieljackson.weatherapp.data.strings.SystemMessaging;
+import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 
 import java.io.IOException;
 
@@ -14,10 +15,12 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -48,17 +51,22 @@ public class SystemModule {
     @Provides
     WeatherApi providesWeatherApi() {
 
+        HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
+        httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+
         OkHttpClient client = new OkHttpClient.Builder().addInterceptor(chain -> {
-            Request request = chain.request()
+            HttpUrl url = chain.request()
+                    .url()
                     .newBuilder()
-                    .addHeader(API_ID_KEY, API_ID_VALUE).build();
-            return chain.proceed(request);
-        }).build();
+                    .addQueryParameter(API_ID_KEY, API_ID_VALUE).build();
+            return chain.proceed(chain.request().newBuilder().url(url).build());
+        }).addInterceptor(httpLoggingInterceptor).build();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://api.openweathermap.org/data/2.5/")
+                .baseUrl("https://api.openweathermap.org")
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build();
 
         return retrofit.create(WeatherApi.class);

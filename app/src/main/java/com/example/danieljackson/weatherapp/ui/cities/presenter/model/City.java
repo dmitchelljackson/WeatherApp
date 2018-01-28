@@ -22,10 +22,12 @@ public class City implements Comparable{
 
     private Scale scale = Scale.FARENHEIT;
 
+    private String description;
+
     private int listPosition;
 
     public City(int cityId, String cityName, double currentTemp, double highTemp, double lowTemp, Integer humidityPercentage,
-                double windSpeed, Direction windDirection, Scale scale) {
+                double windSpeed, Direction windDirection, Scale scale, String description) {
         this.cityId = cityId;
         this.cityName = cityName;
         this.currentTemp = currentTemp;
@@ -35,9 +37,10 @@ public class City implements Comparable{
         this.windSpeed = windSpeed;
         this.windDirection = windDirection;
         this.scale = scale;
+        this.description = description;
     }
 
-    class Builder {
+    public static class Builder {
         private int cityId;
 
         private String cityName;
@@ -56,42 +59,56 @@ public class City implements Comparable{
 
         private Scale scale;
 
+        private String description;
+
         public Builder(int cityId, String cityName) {
             this.cityId = cityId;
             this.cityName = cityName;
         }
 
-        private City build() {
+        public City build() {
             return new City(cityId, cityName, currentTemp, highTemp, lowTemp, humidityPercentage, windSpeed,
-                    windDirection, scale);
+                    windDirection, scale, description);
         }
 
-        public void setCurrentTemp(double currentTemp) {
+        public Builder setCurrentTemp(double currentTemp) {
             this.currentTemp = currentTemp;
+            return Builder.this;
         }
 
-        public void setHighTemp(double highTemp) {
+        public Builder setHighTemp(double highTemp) {
             this.highTemp = highTemp;
+            return Builder.this;
         }
 
-        public void setLowTemp(double lowTemp) {
+        public Builder setLowTemp(double lowTemp) {
             this.lowTemp = lowTemp;
+            return Builder.this;
         }
 
-        public void setHumidityPercentage(Integer humidityPercentage) {
+        public Builder setHumidityPercentage(Integer humidityPercentage) {
             this.humidityPercentage = humidityPercentage;
+            return Builder.this;
         }
 
-        public void setWindSpeed(double windSpeed) {
+        public Builder setWindSpeed(double windSpeed) {
             this.windSpeed = windSpeed;
+            return Builder.this;
         }
 
-        public void setWindDirection(Direction windDirection) {
+        public Builder setWindDirection(Direction windDirection) {
             this.windDirection = windDirection;
+            return Builder.this;
         }
 
-        public void setScale(Scale scale) {
+        public Builder setScale(Scale scale) {
             this.scale = scale;
+            return Builder.this;
+        }
+
+        public Builder setDescription(String description) {
+            this.description = description;
+            return Builder.this;
         }
     }
 
@@ -142,6 +159,7 @@ public class City implements Comparable{
     public enum Scale {
         FARENHEIT,
         CELSIUS,
+        KELVIN
     }
 
     public enum Direction {
