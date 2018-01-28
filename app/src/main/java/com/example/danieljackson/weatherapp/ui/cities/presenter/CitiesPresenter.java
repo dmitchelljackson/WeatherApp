@@ -2,15 +2,16 @@ package com.example.danieljackson.weatherapp.ui.cities.presenter;
 
 import com.example.danieljackson.weatherapp.ui.cities.presenter.model.City;
 
+import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 
 
 public interface CitiesPresenter {
 
-    Observable<City> getCityUpdateStream();
+    Flowable<City> getCityUpdateStream();
 
-    Observable<String> errorMessageStream();
+    Flowable<String> errorMessageStream();
 
     Single<City> searchForCityByZip(String zipCode);
 

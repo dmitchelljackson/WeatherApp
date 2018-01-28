@@ -8,7 +8,7 @@ import io.reactivex.Observable;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
 
-public interface WeatherApi extends CitiesWeatherApi {
+public interface WeatherApi {
 
     @GET("/data/2.5/weather/")
     Observable<WeatherApiResponse> getWeatherForCity(@Query("q") String cityName);
