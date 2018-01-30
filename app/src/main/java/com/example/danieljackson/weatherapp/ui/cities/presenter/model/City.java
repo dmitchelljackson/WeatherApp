@@ -20,7 +20,7 @@ public class City implements Comparable {
 
     private Direction windDirection = Direction.NONE;
 
-    private Scale scale = Scale.FARENHEIT;
+    private Scale scale;
 
     private String iconUrl;
 
@@ -29,7 +29,7 @@ public class City implements Comparable {
     private int listPosition;
 
     public City(int cityId, String cityName, int zipCode, double currentTemp, Integer humidityPercentage,
-                double windSpeed, Direction windDirection, Scale scale, String iconUrl, String description) {
+                double windSpeed, Direction windDirection, Scale scale, String iconUrl, String description, int listPosition) {
         this.cityId = cityId;
         this.cityName = cityName;
         this.zipCode = zipCode;
@@ -37,9 +37,14 @@ public class City implements Comparable {
         this.humidityPercentage = humidityPercentage;
         this.windSpeed = windSpeed;
         this.windDirection = windDirection;
-        this.scale = scale;
+        if(scale == null) {
+            this.scale = Scale.FARENHEIT;
+        } else {
+            this.scale = scale;
+        }
         this.description = description;
         this.iconUrl = iconUrl;
+        this.listPosition = listPosition;
     }
 
     public static class Builder {
@@ -63,15 +68,18 @@ public class City implements Comparable {
 
         private String iconUrl;
 
-        public Builder(int cityId, String cityName, int zipCode) {
+        private int listPosition;
+
+        public Builder(int cityId, String cityName, int zipCode, int listPostion) {
             this.cityId = cityId;
             this.cityName = cityName;
             this.zipCode = zipCode;
+            this.listPosition = listPostion;
         }
 
         public City build() {
             return new City(cityId, cityName, zipCode, currentTemp, humidityPercentage, windSpeed,
-                    windDirection, scale, iconUrl, description);
+                    windDirection, scale, iconUrl, description, listPosition);
         }
 
         public Builder setCurrentTemp(double currentTemp) {
@@ -150,7 +158,7 @@ public class City implements Comparable {
         return listPosition;
     }
 
-    void setListPosition(int listPosition) {
+    public void setListPosition(int listPosition) {
         this.listPosition = listPosition;
     }
 

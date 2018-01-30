@@ -2,14 +2,15 @@ package com.example.danieljackson.weatherapp.ui.cities.presenter;
 
 import com.example.danieljackson.weatherapp.ui.cities.presenter.model.City;
 
+import java.util.SortedSet;
+
 import io.reactivex.Flowable;
-import io.reactivex.Observable;
 import io.reactivex.Single;
 
 
 public interface CitiesPresenter {
 
-    Flowable<City> getCityUpdateStream();
+    Flowable<SortedSet<City>> getCityUpdateStream();
 
     Flowable<String> errorMessageStream();
 

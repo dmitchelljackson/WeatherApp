@@ -3,11 +3,10 @@ package com.example.danieljackson.weatherapp.ui.cities;
 import android.content.Context;
 import android.support.v7.widget.CardView;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.danieljackson.weatherapp.R;
 import com.example.danieljackson.weatherapp.ui.cities.presenter.model.City;
@@ -53,34 +52,45 @@ public class CityCardView extends CardView {
     }
 
     private void init() {
-        addGlobalLayoutListener(this, () -> ButterKnife.bind(CityCardView.this));
+        addGlobalLayoutListener(() -> ButterKnife.bind(CityCardView.this));
+        setOnClickListener(v -> Toast.makeText(getContext(), R.string.feature_coming_soon, Toast.LENGTH_LONG).show());
     }
 
     public void setCity(City city) {
-        this.city = city;
+        addGlobalLayoutListener(() -> {
+            this.city = city;
 
-        if (!city.getDescription().isEmpty()) {
-            shimmerFrameLayout.stopShimmerAnimation();
-        } else {
-            shimmerFrameLayout.startShimmerAnimation();
-        }
+            if (city.getDescription() != null && !city.getDescription().isEmpty()) {
+                shimmerFrameLayout.stopShimmerAnimation();
+            } else {
+                shimmerFrameLayout.startShimmerAnimation();
+            }
 
-        setTextViews(city);
-        Picasso.with(getContext()).load(city.getIconUrl()).fit().into(imageView);
+            setTextViews(city);
+            Picasso.with(getContext()).load(city.getIconUrl()).fit().into(imageView);
+        });
     }
 
     private void setTextViews(City city) {
         cityTextView.setText(getContext().getString(R.string.city_name_format, city.getCityName(), city.getZipCode()));
-        descriptionTextView.setText(capitalizeFirstLetter(city.getDescription()));
+        if(city.getDescription() != null) {
+            descriptionTextView.setText(capitalizeFirstLetter(city.getDescription()));
+        } else {
+            descriptionTextView.setText("");
+        }
         tempTextView.setText(buildTempString(city));
     }
 
     private String buildTempString(City city) {
-        return getContext().getString(R.string.temp_cardview_string,
-                MeasurementConversionUtil.convertFromKelvin(city.getScale(), city.getCurrentTemp()).intValue(),
-                city.getWindDirection().toString(),
-                MeasurementConversionUtil.convertSpeed(city.getScale(), city.getWindSpeed()).intValue(),
-                city.getScale().getSpeedName());
+        if(city.getCurrentTemp() != null && city.getWindSpeed() != null && city.getScale() != null) {
+            return getContext().getString(R.string.temp_cardview_string,
+                    MeasurementConversionUtil.convertFromKelvin(city.getScale(), city.getCurrentTemp()).intValue(),
+                    city.getWindDirection().toString(),
+                    MeasurementConversionUtil.convertSpeed(city.getScale(), city.getWindSpeed()).intValue(),
+                    city.getScale().getSpeedName());
+        } else {
+            return "";
+        }
     }
 
     private String capitalizeFirstLetter(String original) {
@@ -90,8 +100,8 @@ public class CityCardView extends CardView {
         return original.substring(0, 1).toUpperCase() + original.substring(1);
     }
 
-    private void addGlobalLayoutListener(View view, Runnable runnable) {
-        view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+    private void addGlobalLayoutListener(Runnable runnable) {
+        this.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
                 CityCardView.this.getViewTreeObserver().removeOnGlobalLayoutListener(this);

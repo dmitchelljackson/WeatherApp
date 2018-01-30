@@ -8,14 +8,16 @@ import com.example.danieljackson.weatherapp.ui.cities.presenter.model.City;
 import com.example.danieljackson.weatherapp.util.NetworkConversionUtil;
 import com.jakewharton.rxrelay2.PublishRelay;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
+import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.Scheduler;
 import io.reactivex.Single;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 public class CitiesPresenterImpl implements CitiesPresenter {
@@ -32,37 +34,27 @@ public class CitiesPresenterImpl implements CitiesPresenter {
 
     private SystemPersistence systemPersistence;
 
-    private SortedSet<City> selectedCityCache;
+    private PublishRelay<SortedSet<City>> citiesStream = PublishRelay.create();
 
-    private PublishRelay<City> internalCityStream = PublishRelay.create();
+    private Scheduler listUpdateScheduler = Schedulers.single();
 
     private PublishRelay<String> errorMessageStream = PublishRelay.create();
-
-    private Map<City, Disposable> timerDisposableMap = new HashMap<>();
 
     public CitiesPresenterImpl(WeatherApi citiesWeatherApi, SystemMessaging systemMessaging,
                                SystemPersistence systemPersistence) {
         this.weatherApi = citiesWeatherApi;
         this.systemMessaging = systemMessaging;
         this.systemPersistence = systemPersistence;
-
-
-//        selectedCityCache = systemPersistence.getSavedCities();
-//
-//        for(City city : selectedCityCache) {
-//            startUpdateTimerFor(city);
-//        }
     }
 
     @Override
-    public Flowable<City> getCityUpdateStream() {
-//        return weatherApi.getWeatherForCity();
-        return null;
+    public Flowable<SortedSet<City>> getCityUpdateStream() {
+        return systemPersistence.getSavedCities().toFlowable(BackpressureStrategy.BUFFER);
     }
 
     @Override
     public Flowable<String> errorMessageStream() {
-        return null;
+        return errorMessageStream.toFlowable(BackpressureStrategy.BUFFER);
     }
 
     @Override
@@ -80,46 +72,33 @@ public class CitiesPresenterImpl implements CitiesPresenter {
 
     @Override
     public void addCity(City city) {
-        systemMessaging.d(TAG, city.getCityName() + " added");
+        systemPersistence.getSavedCities().take(1).map(cities -> {
+            cities.add(city);
+            return cities;
+        }).subscribeOn(listUpdateScheduler).subscribe(cities -> systemPersistence.updateCityList(cities));
     }
 
     @Override
     public void deleteCity(City city) {
-
+        systemPersistence.getSavedCities().take(1).map(cities -> {
+            cities.remove(city);
+            return cities;
+        }).subscribeOn(listUpdateScheduler).subscribe(cities -> systemPersistence.updateCityList(cities));
     }
 
     @Override
     public void swapCityListPosition(City position1, City position2) {
-
+        systemPersistence.getSavedCities().take(1).map(cities -> {
+            List<City> cityList = new ArrayList<>();
+            cityList.addAll(cities);
+            Collections.swap(cityList, position1.getListPosition(), position2.getListPosition());
+            return new TreeSet<>(cityList);
+        }).subscribeOn(listUpdateScheduler).subscribe(cities -> systemPersistence.updateCityList(cities));
     }
 
     private Flowable<City> getCityForZipCode(int zipCode) {
         return weatherApi.getCityWeatherForZip(zipCode + "," + US_COUNTRY_CODE)
                 .map((WeatherApiResponse weatherApiResponse) -> NetworkConversionUtil.cityFrom(weatherApiResponse, zipCode));
-    }
-
-    private Flowable<City> startUpdateTimerFor(final City city) {
-//        Disposable disposable = Flowable.timer(UPDATE_INTERVAL_MINUTES, TimeUnit.MINUTES)
-//                .map(numb -> getCityForCityId(city.getCityId()))
-//                .doOnNext(resultCity -> {
-//                    selectedCityCache.add(resultCity);
-//                    systemPersistence.updateCityList(selectedCityCache);
-//                })
-//                .subscribeOn(Schedulers.io())
-//                .subscribe(internalCityStream);
-//
-//        if (timerDisposableMap.get(city) != null) {
-//            systemMessaging.e("Time started for same city twice.  This should not happen. Stopping first timer.");
-//            timerDisposableMap.get(city).dispose();
-//        } else {
-//            timerDisposableMap.put(city, disposable);
-//        }
-        return null;
-    }
-
-    private Flowable<City> getCityForCityId(int cityId) {
-//        return weatherApi.getWeatherForCity(cityId).map(NetworkConversionUtil::cityFrom);
-        return null;
     }
 
 }

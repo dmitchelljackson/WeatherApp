@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputLayout;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +24,7 @@ import com.example.danieljackson.weatherapp.ui.cities.presenter.CitiesPresenter;
 import com.example.danieljackson.weatherapp.ui.cities.presenter.model.City;
 import com.jakewharton.retrofit2.adapter.rxjava2.HttpException;
 
+import java.util.SortedSet;
 
 import javax.inject.Inject;
 
@@ -33,6 +35,7 @@ import io.reactivex.SingleObserver;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.subscribers.DisposableSubscriber;
 
 public class CitiesFragment extends Fragment {
 
@@ -50,6 +53,8 @@ public class CitiesFragment extends Fragment {
     @Inject
     SystemMessaging systemMessaging;
 
+    private CitiesAdapter citiesAdapter;
+
     private CompositeDisposable compositeDisposable;
 
     @Override
@@ -61,7 +66,6 @@ public class CitiesFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        compositeDisposable = new CompositeDisposable();
     }
 
     @Nullable
@@ -76,17 +80,45 @@ public class CitiesFragment extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        compositeDisposable = new CompositeDisposable();
 
         addCityButton.setOnClickListener(v -> launchSearchDialog());
 
-//        recyclerView.setAdapter();
-//        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        DisposableSubscriber disposableSubscriber = new DisposableSubscriber<SortedSet<City>>() {
+            @Override
+            public void onNext(SortedSet<City> cities) {
+                if(citiesAdapter == null) {
+                    citiesAdapter = new CitiesAdapter(cities);
+                    recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+                    recyclerView.setAdapter(citiesAdapter);
+                } else {
+                    citiesAdapter.updateCities(cities);
+                }
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                systemMessaging.e(TAG, t.getMessage());
+            }
+
+            @Override
+            public void onComplete() {
+                systemMessaging.e(TAG, "City update stream complete.  This shouldn't happen.");
+            }
+        };
+        compositeDisposable.add(disposableSubscriber);
+
+        citiesPresenter.getCityUpdateStream().observeOn(AndroidSchedulers.mainThread())
+                .subscribe(disposableSubscriber);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        compositeDisposable.dispose();
+
+        if(compositeDisposable != null) {
+            compositeDisposable.dispose();
+        }
     }
 
     private void launchSearchDialog() {
