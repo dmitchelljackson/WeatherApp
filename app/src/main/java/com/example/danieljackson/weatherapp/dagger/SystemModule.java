@@ -28,9 +28,12 @@ import retrofit2.converter.gson.GsonConverterFactory;
 @Module
 public class SystemModule {
 
+    public static final String ICON_URL_BASE = "http://openweathermap.org/img/w";
+
     //TODO if ever moved to production you would want to obfuscate the api key
     private static final String API_ID_KEY = "appid";
     private static final String API_ID_VALUE = "8564e740b6afc8dad424b57443758623";
+    private static final String API_URL_BASE = "https://api.openweathermap.org";
 
     private Context context;
 
@@ -63,7 +66,7 @@ public class SystemModule {
         }).addInterceptor(httpLoggingInterceptor).build();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://api.openweathermap.org")
+                .baseUrl(API_URL_BASE)
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())

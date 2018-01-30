@@ -4,13 +4,11 @@ package com.example.danieljackson.weatherapp.ui.cities;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.Fragment;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.widget.RecyclerView;
-import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,7 +23,6 @@ import com.example.danieljackson.weatherapp.ui.cities.presenter.CitiesPresenter;
 import com.example.danieljackson.weatherapp.ui.cities.presenter.model.City;
 import com.jakewharton.retrofit2.adapter.rxjava2.HttpException;
 
-import org.w3c.dom.Text;
 
 import javax.inject.Inject;
 
@@ -34,6 +31,7 @@ import butterknife.ButterKnife;
 import io.reactivex.Single;
 import io.reactivex.SingleObserver;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 
 public class CitiesFragment extends Fragment {
@@ -52,10 +50,18 @@ public class CitiesFragment extends Fragment {
     @Inject
     SystemMessaging systemMessaging;
 
+    private CompositeDisposable compositeDisposable;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         WeatherApplication.getAppComponent().inject(this);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        compositeDisposable = new CompositeDisposable();
     }
 
     @Nullable
@@ -77,6 +83,12 @@ public class CitiesFragment extends Fragment {
 //        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        compositeDisposable.dispose();
+    }
+
     private void launchSearchDialog() {
         systemMessaging.d(TAG, "Launching city search dialog...");
 
@@ -88,17 +100,16 @@ public class CitiesFragment extends Fragment {
         builder.setView(dialogView);
 
 
-        TextInputLayout searchCityLayout = (TextInputLayout) dialogView.findViewById(R.id.searchCityZipLayout);
+        TextInputLayout searchCityLayout = dialogView.findViewById(R.id.searchCityZipLayout);
         EditText zipEntryText = searchCityLayout.getEditText();
-        ProgressBar progressBar = (ProgressBar) dialogView.findViewById(R.id.search_progress);
+        ProgressBar progressBar = dialogView.findViewById(R.id.search_progress);
+        CityCardView cityCardView = dialogView.findViewById(R.id.search_card_view);
 
         searchCityLayout.setHintEnabled(true);
         searchCityLayout.setHint("Five digit zip, e.g. 37215");
 
-        builder.setPositiveButton("Find", (dialog, which) -> {
-        });
-        builder.setNegativeButton("Cancel", (dialog, which) -> {
-        });
+        builder.setPositiveButton("Find", (dialog, which) -> {});
+        builder.setNegativeButton("Cancel", (dialog, which) -> {});
 
         Dialog dialog = builder.create();
 
@@ -118,12 +129,26 @@ public class CitiesFragment extends Fragment {
                         @Override
                         public void onSubscribe(Disposable d) {
                             systemMessaging.d(TAG, "Subscribed");
+                            addDisposable(d);
                         }
 
                         @Override
                         public void onSuccess(City city) {
                             systemMessaging.d(TAG, city.getCityName());
-                            dialog.dismiss();
+
+                            progressBar.setVisibility(View.GONE);
+
+                            cityCardView.setCity(city);
+                            cityCardView.setVisibility(View.VISIBLE);
+
+                            positive.setText(R.string.add);
+                            positive.setEnabled(true);
+
+                            positive.setOnClickListener(view ->  {
+                                citiesPresenter.addCity(city);
+                                dialog.dismiss();
+                            });
+
                         }
 
                         @Override
@@ -147,6 +172,10 @@ public class CitiesFragment extends Fragment {
         });
 
         dialog.show();
+    }
+
+    private void addDisposable(Disposable disposable) {
+        compositeDisposable.add(disposable);
     }
 }
 

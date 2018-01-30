@@ -9,6 +9,7 @@ public class Wind {
     @SerializedName("speed")
     private Double speedKilometersPerHour;
 
+    @SerializedName("deg")
     private Integer degree;
 
     @VisibleForTesting

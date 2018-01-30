@@ -6,6 +6,8 @@ public class DetailedDescription {
 
     private String description;
 
+    private String icon;
+
 
     @VisibleForTesting
     public DetailedDescription(String main, String description) {
@@ -14,5 +16,9 @@ public class DetailedDescription {
 
     public String getDescription() {
         return description;
+    }
+
+    public String getIcon() {
+        return icon;
     }
 }

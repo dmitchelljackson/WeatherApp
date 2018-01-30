@@ -1,6 +1,7 @@
 package com.example.danieljackson.weatherapp.ui.cities.presenter;
 
 import com.example.danieljackson.weatherapp.data.network.WeatherApi;
+import com.example.danieljackson.weatherapp.data.network.model.WeatherApiResponse;
 import com.example.danieljackson.weatherapp.data.persistence.SystemPersistence;
 import com.example.danieljackson.weatherapp.data.strings.SystemMessaging;
 import com.example.danieljackson.weatherapp.ui.cities.presenter.model.City;
@@ -18,6 +19,8 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 public class CitiesPresenterImpl implements CitiesPresenter {
+
+    private static final String TAG = CitiesPresenterImpl.class.getSimpleName();
 
     private static final long UPDATE_INTERVAL_MINUTES = 5;
 
@@ -64,9 +67,9 @@ public class CitiesPresenterImpl implements CitiesPresenter {
 
     @Override
     public Single<City> searchForCityByZip(String zipCode) {
-        long zipInt;
+        int zipInt;
         try {
-            zipInt = Long.parseLong(zipCode);
+            zipInt = Integer.parseInt(zipCode);
             return Single.fromObservable(getCityForZipCode(zipInt).toObservable()).subscribeOn(Schedulers.io());
         } catch (NumberFormatException ex) {
             errorMessageStream.accept(systemMessaging.getThisIsNotAValidZipCodeMessage());
@@ -77,8 +80,7 @@ public class CitiesPresenterImpl implements CitiesPresenter {
 
     @Override
     public void addCity(City city) {
-
-
+        systemMessaging.d(TAG, city.getCityName() + " added");
     }
 
     @Override
@@ -91,9 +93,9 @@ public class CitiesPresenterImpl implements CitiesPresenter {
 
     }
 
-    private Flowable<City> getCityForZipCode(long zipCode) {
+    private Flowable<City> getCityForZipCode(int zipCode) {
         return weatherApi.getCityWeatherForZip(zipCode + "," + US_COUNTRY_CODE)
-                .map(NetworkConversionUtil::cityFrom);
+                .map((WeatherApiResponse weatherApiResponse) -> NetworkConversionUtil.cityFrom(weatherApiResponse, zipCode));
     }
 
     private Flowable<City> startUpdateTimerFor(final City city) {
