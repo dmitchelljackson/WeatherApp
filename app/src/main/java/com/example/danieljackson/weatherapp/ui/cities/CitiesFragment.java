@@ -10,6 +10,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -87,6 +88,7 @@ public class CitiesFragment extends Fragment {
         DisposableSubscriber disposableSubscriber = new DisposableSubscriber<SortedSet<City>>() {
             @Override
             public void onNext(SortedSet<City> cities) {
+                Log.d(TAG, "New cities received");
                 if(citiesAdapter == null) {
                     citiesAdapter = new CitiesAdapter(cities);
                     recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -98,7 +100,7 @@ public class CitiesFragment extends Fragment {
 
             @Override
             public void onError(Throwable t) {
-                systemMessaging.e(TAG, t.getMessage());
+                systemMessaging.e(TAG, "", t);
             }
 
             @Override
@@ -185,7 +187,7 @@ public class CitiesFragment extends Fragment {
 
                         @Override
                         public void onError(Throwable e) {
-                            systemMessaging.e(TAG, e.getMessage());
+                            systemMessaging.e(TAG, "Error in search result", e);
                             progressBar.setVisibility(View.GONE);
                             searchCityLayout.setVisibility(View.VISIBLE);
                             if (e instanceof HttpException && ((HttpException) e).code() == 404) {

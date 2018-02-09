@@ -233,6 +233,10 @@ public class City implements Comparable {
         return cityId;
     }
 
+    //for search
+    public City(int cityId) {
+        this.cityId = cityId;
+    }
 
     @Override
     public int compareTo(@NonNull Object o) {

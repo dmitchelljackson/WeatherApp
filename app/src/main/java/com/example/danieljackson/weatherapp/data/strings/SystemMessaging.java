@@ -8,6 +8,8 @@ public interface SystemMessaging {
 
     void e(String tag, String message);
 
+    void e(String tag,String message, Throwable throwable);
+
     void i(String tag, String message);
 
     String getAlreadyAddedErrorMessage(City city);

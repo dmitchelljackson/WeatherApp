@@ -29,6 +29,11 @@ public class AndroidMessageRetriever implements SystemMessaging {
     }
 
     @Override
+    public void e(String tag, String message, Throwable throwable) {
+        Log.e(tag, message, throwable);
+    }
+
+    @Override
     public void i(String tag, String message) {
         Log.i(tag, message);
     }

@@ -5,9 +5,12 @@ import android.support.annotation.VisibleForTesting;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class WeatherApiResponse {
+
+    private List<WeatherApiResponse> list;
 
     private String name;
 
@@ -18,6 +21,9 @@ public class WeatherApiResponse {
 
     @SerializedName("main")
     private Measurements tempMeasurements;
+
+    @SerializedName("coord")
+    private Coordinates coordinates;
 
     private Wind wind;
 
@@ -39,6 +45,20 @@ public class WeatherApiResponse {
 
     public Measurements getTempMeasurements() {
         return tempMeasurements;
+    }
+
+    public Coordinates getCoordinates() {
+        return coordinates;
+    }
+
+    public List<WeatherApiResponse> getList() {
+        if(list != null) {
+            return list;
+        } else {
+            List<WeatherApiResponse> list = new ArrayList<>();
+            list.add(this);
+            return list;
+        }
     }
 
     public Wind getWind() {

@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.processors.BehaviorProcessor;
 
@@ -63,8 +64,13 @@ public class PreferencePersistence implements SystemPersistence {
     }
 
     @Override
-    public Relay<SortedSet<City>> getSavedCities() {
-        return cachedCities;
+    public SortedSet<City> getSavedCities() {
+        return getSavedCitiesStream().blockingFirst();
+    }
+
+    @Override
+    public Flowable<SortedSet<City>> getSavedCitiesStream() {
+        return cachedCities.toFlowable(BackpressureStrategy.BUFFER);
     }
 
     private void saveCitiesToPrefs(SortedSet<City> cities) {

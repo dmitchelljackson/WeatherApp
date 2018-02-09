@@ -82,7 +82,7 @@ public class CityCardView extends CardView {
     }
 
     private String buildTempString(City city) {
-        if(city.getCurrentTemp() != null && city.getWindSpeed() != null && city.getScale() != null) {
+        if(city.getCurrentTemp() != null && city.getWindSpeed() != null && city.getScale() != null && city.getWindDirection() != null) {
             return getContext().getString(R.string.temp_cardview_string,
                     MeasurementConversionUtil.convertFromKelvin(city.getScale(), city.getCurrentTemp()).intValue(),
                     city.getWindDirection().toString(),
