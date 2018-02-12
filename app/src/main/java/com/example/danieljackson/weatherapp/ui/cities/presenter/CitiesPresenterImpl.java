@@ -110,6 +110,11 @@ public class CitiesPresenterImpl implements CitiesPresenter {
         }).subscribeOn(listUpdateScheduler).subscribe(cities -> systemPersistence.updateCityList(cities));
     }
 
+    @Override
+    public void refreshCities() {
+        refreshCityStream();
+    }
+
     private Flowable<City> getCityForZipCode(int zipCode) {
         return weatherApi.getCityWeatherForZip(zipCode + "," + US_COUNTRY_CODE)
                 .map(WeatherApiResponse::getCoordinates)
@@ -138,7 +143,9 @@ public class CitiesPresenterImpl implements CitiesPresenter {
             return weatherApi.getWeatherForCities(cityIdList)
                     .map(weatherApiResponseList ->
                             NetworkConversionUtil.mapApiResponsesToCities(persistedCities, weatherApiResponseList.getList(), systemMessaging)
-                    ).subscribeOn(Schedulers.io());
+                    )
+                    .onErrorResumeNext(Flowable.empty())
+                    .subscribeOn(Schedulers.io());
         } else {
             systemMessaging.i(TAG, "No persisted cities, skipping refresh");
             return Flowable.empty();

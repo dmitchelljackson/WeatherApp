@@ -58,22 +58,26 @@ public class CityCardView extends CardView {
 
     public void setCity(City city) {
         addGlobalLayoutListener(() -> {
-            this.city = city;
-
-            if (city.getDescription() != null && !city.getDescription().isEmpty()) {
-                shimmerFrameLayout.stopShimmerAnimation();
-            } else {
-                shimmerFrameLayout.startShimmerAnimation();
-            }
-
-            setTextViews(city);
-            Picasso.with(getContext()).load(city.getIconUrl()).fit().into(imageView);
+            configureView(city);
         });
+    }
+
+    private void configureView(City city) {
+        this.city = city;
+
+        if (city.getDescription() != null && !city.getDescription().isEmpty()) {
+            shimmerFrameLayout.stopShimmerAnimation();
+        } else {
+            shimmerFrameLayout.startShimmerAnimation();
+        }
+
+        setTextViews(city);
+        Picasso.with(getContext()).load(city.getIconUrl()).fit().into(imageView);
     }
 
     private void setTextViews(City city) {
         cityTextView.setText(getContext().getString(R.string.city_name_format, city.getCityName(), city.getZipCode()));
-        if(city.getDescription() != null) {
+        if (city.getDescription() != null) {
             descriptionTextView.setText(capitalizeFirstLetter(city.getDescription()));
         } else {
             descriptionTextView.setText("");
@@ -82,7 +86,7 @@ public class CityCardView extends CardView {
     }
 
     private String buildTempString(City city) {
-        if(city.getCurrentTemp() != null && city.getWindSpeed() != null && city.getScale() != null && city.getWindDirection() != null) {
+        if (city.getCurrentTemp() != null && city.getWindSpeed() != null && city.getScale() != null && city.getWindDirection() != null) {
             return getContext().getString(R.string.temp_cardview_string,
                     MeasurementConversionUtil.convertFromKelvin(city.getScale(), city.getCurrentTemp()).intValue(),
                     city.getWindDirection().toString(),
@@ -101,12 +105,6 @@ public class CityCardView extends CardView {
     }
 
     private void addGlobalLayoutListener(Runnable runnable) {
-        this.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                CityCardView.this.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                runnable.run();
-            }
-        });
+        this.getViewTreeObserver().addOnGlobalLayoutListener(runnable::run);
     }
 }

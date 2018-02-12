@@ -1,6 +1,7 @@
 package com.example.danieljackson.weatherapp.ui.cities;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,7 @@ import com.example.danieljackson.weatherapp.R;
 import com.example.danieljackson.weatherapp.ui.cities.presenter.model.City;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.SortedSet;
 
@@ -18,9 +20,12 @@ import butterknife.ButterKnife;
 
 public class CitiesAdapter extends RecyclerView.Adapter<CitiesAdapter.ViewHolder> {
 
+    private static final String TAG = CitiesAdapter.class.getSimpleName();
+
     private List<City> cities;
 
     public CitiesAdapter(SortedSet<City> cities) {
+        setHasStableIds(true);
         setCities(cities);
     }
 
@@ -32,6 +37,7 @@ public class CitiesAdapter extends RecyclerView.Adapter<CitiesAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
+        Log.d(TAG, "Setting " + cities.get(position).getCityName());
         holder.cityCardView.setCity(cities.get(position));
     }
 
@@ -42,7 +48,7 @@ public class CitiesAdapter extends RecyclerView.Adapter<CitiesAdapter.ViewHolder
 
     @Override
     public long getItemId(int position) {
-        return cities.get(position).getCityId();
+        return getIdForCity(cities.get(position));
     }
 
     public void updateCities(SortedSet<City> cities) {
@@ -63,6 +69,14 @@ public class CitiesAdapter extends RecyclerView.Adapter<CitiesAdapter.ViewHolder
             super(itemView);
             cityCardView = (CityCardView) itemView;
         }
+    }
+
+    public int getIdForCity(City city) {
+        return city.getCityId();
+    }
+
+    public List<City> getCities() {
+        return cities;
     }
 }
 

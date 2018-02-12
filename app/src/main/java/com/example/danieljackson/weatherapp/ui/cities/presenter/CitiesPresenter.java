@@ -21,4 +21,6 @@ public interface CitiesPresenter {
     void deleteCity(City city);
 
     void swapCityListPosition(City position1, City position2);
+
+    void refreshCities();
 }

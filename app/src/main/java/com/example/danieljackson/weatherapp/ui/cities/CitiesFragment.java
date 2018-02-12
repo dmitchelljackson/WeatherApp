@@ -8,8 +8,10 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,6 +27,8 @@ import com.example.danieljackson.weatherapp.ui.cities.presenter.CitiesPresenter;
 import com.example.danieljackson.weatherapp.ui.cities.presenter.model.City;
 import com.jakewharton.retrofit2.adapter.rxjava2.HttpException;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.SortedSet;
 
 import javax.inject.Inject;
@@ -47,6 +51,9 @@ public class CitiesFragment extends Fragment {
 
     @BindView(R.id.add_button)
     FloatingActionButton addCityButton;
+
+    @BindView(R.id.swiperefresh)
+    SwipeRefreshLayout swipeRefreshLayout;
 
     @Inject
     CitiesPresenter citiesPresenter;
@@ -79,8 +86,9 @@ public class CitiesFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    public void onResume() {
+        super.onResume();
+
         compositeDisposable = new CompositeDisposable();
 
         addCityButton.setOnClickListener(v -> launchSearchDialog());
@@ -89,7 +97,8 @@ public class CitiesFragment extends Fragment {
             @Override
             public void onNext(SortedSet<City> cities) {
                 Log.d(TAG, "New cities received");
-                if(citiesAdapter == null) {
+                swipeRefreshLayout.setRefreshing(false);
+                if (citiesAdapter == null) {
                     citiesAdapter = new CitiesAdapter(cities);
                     recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
                     recyclerView.setAdapter(citiesAdapter);
@@ -112,13 +121,40 @@ public class CitiesFragment extends Fragment {
 
         citiesPresenter.getCityUpdateStream().observeOn(AndroidSchedulers.mainThread())
                 .subscribe(disposableSubscriber);
+
+        swipeRefreshLayout.setColorSchemeResources(R.color.primary, R.color.accent, R.color.primary_light);
+        swipeRefreshLayout.setOnRefreshListener(() -> citiesPresenter.refreshCities());
+
+        ItemTouchHelper helper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0,
+                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                if (citiesAdapter != null) {
+                    for (City city : citiesAdapter.getCities()) {
+                        if (citiesAdapter.getIdForCity(city) == viewHolder.getItemId()) {
+                            citiesPresenter.deleteCity(city);
+                            citiesAdapter.notifyDataSetChanged();
+                            break;
+                        }
+                    }
+                }
+                Log.e(TAG, "No city found for " + viewHolder.getItemId());
+            }
+        });
+
+        helper.attachToRecyclerView(recyclerView);
     }
 
     @Override
     public void onStop() {
         super.onStop();
 
-        if(compositeDisposable != null) {
+        if (compositeDisposable != null) {
             compositeDisposable.dispose();
         }
     }
@@ -142,8 +178,10 @@ public class CitiesFragment extends Fragment {
         searchCityLayout.setHintEnabled(true);
         searchCityLayout.setHint("Five digit zip, e.g. 37215");
 
-        builder.setPositiveButton("Find", (dialog, which) -> {});
-        builder.setNegativeButton("Cancel", (dialog, which) -> {});
+        builder.setPositiveButton("Find", (dialog, which) -> {
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> {
+        });
 
         Dialog dialog = builder.create();
 
@@ -178,7 +216,7 @@ public class CitiesFragment extends Fragment {
                             positive.setText(R.string.add);
                             positive.setEnabled(true);
 
-                            positive.setOnClickListener(view ->  {
+                            positive.setOnClickListener(view -> {
                                 citiesPresenter.addCity(city);
                                 dialog.dismiss();
                             });
@@ -207,6 +245,7 @@ public class CitiesFragment extends Fragment {
 
         dialog.show();
     }
+
 
     private void addDisposable(Disposable disposable) {
         compositeDisposable.add(disposable);

@@ -245,6 +245,10 @@ public class City implements Comparable {
 
         City that = (City) o;
 
-        return this.listPosition - that.listPosition;
+        if(getCityId() == that.getCityId()) {
+            return 0;
+        } else {
+            return this.listPosition - that.listPosition;
+        }
     }
 }
