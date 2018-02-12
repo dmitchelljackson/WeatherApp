@@ -4,11 +4,13 @@ import com.example.danieljackson.weatherapp.ui.cities.presenter.model.City;
 
 public interface SystemMessaging {
 
-    void d(String message);
+    void d(String tag, String message);
 
-    void e(String message);
+    void e(String tag, String message);
 
-    void i(String message);
+    void e(String tag,String message, Throwable throwable);
+
+    void i(String tag, String message);
 
     String getAlreadyAddedErrorMessage(City city);
 

@@ -9,10 +9,11 @@ public class Wind {
     @SerializedName("speed")
     private Double speedKilometersPerHour;
 
-    private Integer degree;
+    @SerializedName("deg")
+    private Double degree;
 
     @VisibleForTesting
-    public Wind(Double speedKilometersPerHour, Integer degree) {
+    public Wind(Double speedKilometersPerHour, Double degree) {
         this.speedKilometersPerHour = speedKilometersPerHour;
         this.degree = degree;
     }
@@ -22,6 +23,6 @@ public class Wind {
     }
 
     public Integer getDegree() {
-        return degree;
+        return degree.intValue();
     }
 }
